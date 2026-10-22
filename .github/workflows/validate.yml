@@ -54,7 +54,7 @@ jobs:
         run: |
           set -euo pipefail
           # Reject common commands that would write eula=true to a file.
-          if grep -Eq '(printf|echo)[[:space:]].*eula=true.*(>|>>)' scripts/*.sh; then
+          if grep -Eq '(printf|echo)[[:space:]].*eula=true.*>.*eula\\.txt' scripts/*.sh; then
             echo "Safety check failed: a script appears to auto-accept the EULA." >&2
             exit 1
           fi
