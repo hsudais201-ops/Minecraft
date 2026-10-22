@@ -49,6 +49,33 @@ jobs:
           echo "Preparing a temporary runtime bundle for Minecraft $MC_VERSION"
           bash scripts/download-server.sh "$MC_VERSION" bundle
 
+      - name: Set up Java 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Test Paper startup without accepting the EULA
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd bundle
+          printf '%s\n' 'eula=false' > eula.txt
+          set +e
+          timeout 60s java -Xms256M -Xmx1G -jar paper.jar --nogui > ../paper-smoke.log 2>&1
+          status=$?
+          set -e
+          cat ../paper-smoke.log
+          if [[ "$status" -eq 0 || "$status" -eq 124 ]]; then
+            echo "Unexpected outcome from EULA-gated startup (exit $status)." >&2
+            exit 1
+          fi
+          if ! grep -Eiq 'EULA|agree to the.*(license|agreement)' ../paper-smoke.log; then
+            echo "Paper did not reach the expected EULA gate; see log above." >&2
+            exit 1
+          fi
+          echo "Paper executed under Java 25 and stopped at the EULA gate. No live server was started."
+
       - name: Write checksum manifest
         shell: bash
         run: |
