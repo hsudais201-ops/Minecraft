@@ -1,53 +1,44 @@
-# Run this server on a Linux computer you control
+# Run Minecraft Java 1.21.11 on a Linux computer you control
 
-This is the practical route if you want to keep all source/configuration on GitHub while running a live world on hardware you already own. GitHub itself will not host the persistent process.
+This is the practical way to keep the project files on GitHub while running a real world on a computer you own. GitHub itself will not host the persistent game-server process.
 
-## Before you start
+## Requirements
 
-- Use a Linux machine you own or are authorized to administer.
-- The machine must have enough RAM/CPU, stay powered on, stay online, and have a network that permits incoming connections.
-- 24/7 operation is not literally unlimited: electricity, internet outages, hardware limits, router/ISP policies, and Minecraft/Geyser compatibility still apply.
-- Paper is a high-performance Java server that can differ from strict vanilla behavior.
-- Check the Java requirement for the exact Minecraft version before running the server. Paper's current guide lists Java 21 for Minecraft 1.20–1.21.11 and Java 25 for 26.1+; verify the latest table at https://docs.papermc.io/paper/getting-started/.
+- A Linux computer you own or are authorized to administer.
+- Enough memory and CPU, a stable internet connection, and a computer that stays powered on.
+- **Java 21** for Paper on Minecraft 1.21.11. Verify the current table at https://docs.papermc.io/paper/getting-started/.
+- Paper is a performance-oriented Java server and is not identical to the official vanilla server.
 
-## Prepare the files
+## Prepare and start the server
 
-1. Clone/download this repository on the Linux computer.
-2. Install `curl`, `jq`, `sha256sum`, and the required Java runtime using your distribution's trusted package manager.
+1. Download or clone this repository on the Linux computer.
+2. Install `curl`, `jq`, `sha256sum`, and Java 21 using your distribution's trusted package manager.
 3. From the repository directory, run:
 
    ```bash
-   bash scripts/download-server.sh 26.3
+   bash scripts/download-server.sh 1.21.11
    ```
 
-   For current Geyser clients, start with `26.3`; verify current supported versions at https://geysermc.org/tr/wiki/geyser/supported-versions/ before updating. The script downloads the stable Paper build and latest Geyser/Floodgate plugin builds, checking SHA-256 checksums where the official endpoints provide them. Plugin compatibility is not guaranteed across all version combinations.
+   The script downloads the stable Paper build for Minecraft 1.21.11 and checks its SHA-256 checksum. It does not install Bedrock crossplay plugins.
 
-4. Start the server once:
+4. Run:
 
    ```bash
    bash scripts/start-server.sh
    ```
 
-5. Read the Minecraft EULA at https://www.minecraft.net/en-us/eula. The first run creates `server-runtime/eula.txt` with `eula=false` and exits. Only if you agree, edit that file to `eula=true`.
-6. Run the start script again. It will start Paper and generate plugin configuration. For Minecraft 26.1 and later, use Java 25 or newer; verify the version table at https://docs.papermc.io/paper/getting-started/.
-7. Stop the server with the console command `stop` before editing files or copying world backups.
-
-## Configure crossplay
-
-1. Make sure both Geyser and Floodgate loaded successfully in the console.
-2. Review the generated `server-runtime/plugins/Geyser-Spigot/config.yml`. For this plugin setup, configure Geyser's `auth-type` to `floodgate` as instructed by the official Geyser/Floodgate docs.
-3. Keep Java `online-mode=true` and the whitelist enabled. Add only trusted players with the server console's whitelist command.
-4. The typical ports are Java TCP 25565 and Bedrock UDP 19132. Confirm the actual Bedrock port in Geyser's config.
-5. Only if you understand the security impact and your ISP/router allows it, forward those specific ports to the server computer and allow them in its firewall. Do not expose unrelated services. Some ISPs use carrier-grade NAT and do not allow inbound connections; router changes alone will not fix that.
-6. Test locally first, then test from a separate network with both Java and Bedrock clients.
+5. The first run creates `server-runtime/eula.txt` with `eula=false` and exits. Read https://www.minecraft.net/en-us/eula. Only if you agree, change it to `eula=true`.
+6. Run the start script again.
+7. Keep `online-mode=true`, `white-list=true`, and `enforce-whitelist=true`. Add only trusted players using the server console's whitelist commands.
+8. The usual Java port is TCP 25565. Only expose that port if you understand the security implications and your host/network permits incoming connections.
 
 ## Keep it available
 
-- Configure the computer not to sleep while hosting, keep it ventilated, and use a stable wired connection when possible.
-- Back up the world regularly while the server is stopped, or use a backup tool designed for live Minecraft worlds.
-- Keep OS and plugins updated, but back up and check compatibility before updates.
-- Do not commit the generated world, server JARs, tokens, SSH keys, or private data to GitHub.
+- Prevent the host computer from sleeping while you want the server online.
+- Back up the world regularly, and stop the server with the console command `stop` before making a manual backup.
+- Update Paper carefully after backing up and checking compatibility.
+- Never commit the server world, server JAR, secrets, or private server data to GitHub.
 
-## If you have only GitHub
+## If you only have GitHub
 
-If no separate computer or hosting runtime is available, GitHub Actions can run checks and create temporary artifacts, but it cannot make this project a supported permanent Minecraft host. Do not repeatedly restart Actions jobs to evade timeouts.
+The GitHub Actions workflows in this repository can validate configuration and test Paper 1.21.11 temporarily. They do not create a permanent host, public Minecraft IP, or 24/7 availability. Do not repeatedly relaunch jobs to get around usage limits.
