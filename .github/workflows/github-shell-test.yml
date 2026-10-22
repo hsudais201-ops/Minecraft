@@ -5,44 +5,42 @@ on:
   push:
     paths:
       - ".github/workflows/github-shell-test.yml"
+      - "scripts/download-server.sh"
 
 permissions:
   contents: read
 
 jobs:
   shell-test:
-    name: Run shell commands on GitHub Linux runner
+    name: Test Paper 1.21.11 under Java 21
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Prove shell access
+      - name: Check shell access and script syntax
         shell: bash
         run: |
           set -euo pipefail
-          echo "=== Current directory ==="
-          pwd
           echo "=== Runner OS ==="
           uname -a
           echo "=== User and architecture ==="
           id
           uname -m
-          echo "=== Script syntax ==="
           bash -n scripts/check-config.sh
           bash -n scripts/download-server.sh
           bash -n scripts/start-server.sh
           bash scripts/check-config.sh config/server.properties
           echo "SHELL_ACCESS=PASS"
 
-      - name: Set up Java 25
+      - name: Set up Java 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "25"
+          java-version: "21"
 
-      - name: Download Paper and crossplay plugins
+      - name: Download and verify Paper 1.21.11
         shell: bash
         run: |
           set -euo pipefail
@@ -50,14 +48,13 @@ jobs:
           command -v curl
           command -v jq
           command -v sha256sum
-          bash scripts/download-server.sh 26.3 runtime
+          bash scripts/download-server.sh 1.21.11 runtime
 
-      - name: Test real Paper startup without accepting EULA
+      - name: Test Paper startup without accepting the EULA
         shell: bash
         run: |
           set -euo pipefail
           cd runtime
-          printf '%s\n' 'eula=false' > eula.txt
           set +e
           timeout 60s java -Xms256M -Xmx1G -jar paper.jar --nogui > ../github-shell-test.log 2>&1
           status=$?
@@ -65,15 +62,13 @@ jobs:
           cat ../github-shell-test.log
 
           if [[ "$status" -eq 124 ]]; then
-            echo "Paper did not finish its EULA-gate startup in 60 seconds." >&2
+            echo "Paper did not reach the EULA gate within 60 seconds." >&2
             exit 1
           fi
-          grep -Eiq 'Running Java 25' ../github-shell-test.log
-          grep -Eiq 'Loading Paper .*Minecraft 26\.3' ../github-shell-test.log
-          grep -Eiq 'Geyser-Spigot.*floodgate|Geyser-Spigot' ../github-shell-test.log
+          grep -Eiq 'Running Java 21' ../github-shell-test.log
+          grep -Eiq 'Loading Paper .*Minecraft 1\.21\.11' ../github-shell-test.log
           grep -Eiq 'agree to the EULA' ../github-shell-test.log
-          echo "PAPER_RUNTIME=PASS"
-          echo "CROSSPLAY_PLUGINS=DETECTED"
+          echo "PAPER_1_21_11_RUNTIME=PASS"
           echo "EULA=NOT_ACCEPTED"
 
       - name: Write test summary
@@ -81,19 +76,18 @@ jobs:
         shell: bash
         run: |
           {
-            echo "GitHub Actions shell execution: completed"
-            echo "Runtime under test: Paper 26.3 / Java 25"
-            echo "Crossplay plugins: Geyser + Floodgate"
-            echo "EULA: left false; the server was not started for players"
+            echo "Runtime tested: Paper 1.21.11 / Java 21"
+            echo "Edition: Java only"
+            echo "EULA: not accepted automatically"
             echo "Public game endpoint: not created by this test"
-            echo "Persistent 24/7 uptime: not provided by GitHub Actions"
+            echo "Persistent uptime: not provided by GitHub Actions"
           } > github-shell-test-summary.txt
 
       - name: Upload shell-test log
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: github-shell-test-results
+          name: minecraft-java-1.21.11-test-results
           path: |
             github-shell-test.log
             github-shell-test-summary.txt
