@@ -20,7 +20,7 @@ printf 'This runs only while your Codespace is running. It is not 24/7 hosting.\
 printf 'Minecraft server default port: TCP 25565\n'
 
 command -v java >/dev/null 2>&1 || fail "Java is missing. This Codespace needs Java 21."
-JAVA_MAJOR="$(java -version 2>&1 | sed -n '1s/.*version "\\([0-9]*\\).*/\\1/p')"
+JAVA_MAJOR="$(java -version 2>&1 | head -n 1 | grep -oE 'version "[0-9]+' | grep -oE '[0-9]+$' || true)"
 [[ "$JAVA_MAJOR" == "21" ]] || fail "Java 21 is required; detected major version: ${JAVA_MAJOR:-unknown}."
 command -v curl >/dev/null 2>&1 || fail "curl is missing."
 command -v jq >/dev/null 2>&1 || fail "jq is missing."
