@@ -11,6 +11,7 @@ GitHub can store the project and run temporary download/test jobs. It does not p
 - `config/server.properties` — survival starter settings; whitelist enabled.
 - `scripts/download-server.sh` — downloads Mojang's official 1.21.11 server JAR and verifies it against Mojang's version metadata.
 - `scripts/start-server.sh` — starts the server only after you manually accept the Minecraft EULA.
+- `scripts/run-in-codespaces.sh` — command-file helper for starting the server inside a configured Codespace after EULA acceptance.
 - `.github/workflows/validate.yml` — checks configuration and shell syntax.
 - `.github/workflows/github-shell-test.yml` — tests Java 21 + official server startup through the EULA gate.
 - `.github/workflows/prepare-runtime.yml` — uploads a temporary server software artifact that expires after 3 days.
