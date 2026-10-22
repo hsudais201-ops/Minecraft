@@ -21,11 +21,7 @@ jobs:
         run: |
           set -euo pipefail
           test -f config/server.properties
-          grep -qx 'gamemode=survival' config/server.properties
-          grep -qx 'online-mode=true' config/server.properties
-          grep -qx 'white-list=true' config/server.properties
-          grep -qx 'enforce-whitelist=true' config/server.properties
-          echo "Server configuration checks passed."
+          bash scripts/check-config.sh config/server.properties
 
       - name: Check shell script syntax
         shell: bash
@@ -36,12 +32,29 @@ jobs:
           bash -n scripts/start-server.sh
           echo "Shell script syntax checks passed."
 
+      - name: Test downloader argument handling
+        shell: bash
+        run: |
+          set -euo pipefail
+          output_file="$(mktemp)"
+          status=0
+          bash scripts/download-server.sh >"$output_file" 2>&1 || status=$?
+          if [[ "$status" -ne 2 ]]; then
+            cat "$output_file"
+            echo "Expected missing arguments to exit with status 2, got $status." >&2
+            rm -f "$output_file"
+            exit 1
+          fi
+          grep -q 'Usage:' "$output_file"
+          rm -f "$output_file"
+          echo "Downloader usage check passed."
+
       - name: Check EULA safety
         shell: bash
         run: |
           set -euo pipefail
           # Reject common commands that would write eula=true to a file.
-          if grep -Eq '(printf|echo)[[:space:]].*eula=true.*(>|>>) ' scripts/*.sh; then
+          if grep -Eq '(printf|echo)[[:space:]].*eula=true.*(>|>>)' scripts/*.sh; then
             echo "Safety check failed: a script appears to auto-accept the EULA." >&2
             exit 1
           fi
