@@ -11,8 +11,8 @@ if [[ $# -lt 1 || $# -gt 2 ]]; then
 fi
 
 MC_VERSION="$1"
-if [[ ! "$MC_VERSION" =~ ^[0-9]+(\\.[0-9]+){1,2}$ ]]; then
-  echo "Minecraft version must look like 1.21.11 or 26.1 (stable release only)." >&2
+if [[ ! "$MC_VERSION" =~ ^[0-9]+(\.[0-9]+){1,2}$ ]]; then
+  echo "Minecraft version must look like 1.21.11 or 26.3 (stable release only)." >&2
   exit 2
 fi
 
