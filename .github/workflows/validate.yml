@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   validate:
-    name: Validate configuration
+    name: Validate configuration and scripts
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -26,3 +26,22 @@ jobs:
           grep -qx 'white-list=true' config/server.properties
           grep -qx 'enforce-whitelist=true' config/server.properties
           echo "Server configuration checks passed."
+
+      - name: Check shell script syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n scripts/check-config.sh
+          bash -n scripts/download-server.sh
+          bash -n scripts/start-server.sh
+          echo "Shell script syntax checks passed."
+
+      - name: Confirm no automatic EULA acceptance
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -Eq 'eula=true' scripts/*.sh; then
+            echo "Safety check failed: a script must not auto-accept the EULA." >&2
+            exit 1
+          fi
+          echo "EULA safety check passed."
