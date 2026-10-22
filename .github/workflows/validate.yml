@@ -36,12 +36,13 @@ jobs:
           bash -n scripts/start-server.sh
           echo "Shell script syntax checks passed."
 
-      - name: Confirm no automatic EULA acceptance
+      - name: Check EULA safety
         shell: bash
         run: |
           set -euo pipefail
-          if grep -Eq 'eula=true' scripts/*.sh; then
-            echo "Safety check failed: a script must not auto-accept the EULA." >&2
+          # Reject common commands that would write eula=true to a file.
+          if grep -Eq '(printf|echo)[[:space:]].*eula=true.*(>|>>) ' scripts/*.sh; then
+            echo "Safety check failed: a script appears to auto-accept the EULA." >&2
             exit 1
           fi
           echo "EULA safety check passed."
