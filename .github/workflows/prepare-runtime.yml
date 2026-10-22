@@ -93,6 +93,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: minecraft-crossplay-runtime-${{ inputs.minecraft-version || '26.3' }}
-          path: bundle/
+          path: |
+            bundle/paper.jar
+            bundle/plugins/Geyser-Spigot.jar
+            bundle/plugins/floodgate-spigot.jar
+            bundle/server.properties
+            bundle/eula.txt
+            bundle/SHA256SUMS
           if-no-files-found: error
           retention-days: 3
