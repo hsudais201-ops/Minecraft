@@ -30,7 +30,10 @@ jobs:
           bash -n scripts/check-config.sh
           bash -n scripts/download-server.sh
           bash -n scripts/start-server.sh
-          echo "Shell script syntax checks passed."
+          bash -n scripts/run-in-codespaces.sh
+          jq -e '.forwardPorts | index(25565) != null' .devcontainer/devcontainer.json >/dev/null
+          jq -e '.portsAttributes["25565"].visibility == "public"' .devcontainer/devcontainer.json >/dev/null
+          echo "Shell syntax and Codespaces port configuration checks passed."
 
       - name: Test downloader rejects extra arguments
         shell: bash
