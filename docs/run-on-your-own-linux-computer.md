@@ -17,10 +17,10 @@ This is the practical route if you want to keep all source/configuration on GitH
 3. From the repository directory, run:
 
    ```bash
-   bash scripts/download-server.sh 1.21.11
+   bash scripts/download-server.sh 26.3
    ```
 
-   Replace `1.21.11` with a version that has a stable Paper build and supports the client versions you need. The script downloads the stable Paper build and latest Geyser/Floodgate plugin builds, checking SHA-256 checksums where the official endpoints provide them. Plugin compatibility is not guaranteed across all version combinations.
+   For current Geyser clients, start with `26.3`; verify current supported versions at https://geysermc.org/tr/wiki/geyser/supported-versions/ before updating. The script downloads the stable Paper build and latest Geyser/Floodgate plugin builds, checking SHA-256 checksums where the official endpoints provide them. Plugin compatibility is not guaranteed across all version combinations.
 
 4. Start the server once:
 
@@ -29,7 +29,7 @@ This is the practical route if you want to keep all source/configuration on GitH
    ```
 
 5. Read the Minecraft EULA at https://www.minecraft.net/en-us/eula. The first run creates `server-runtime/eula.txt` with `eula=false` and exits. Only if you agree, edit that file to `eula=true`.
-6. Run the start script again. It will start Paper and generate plugin configuration.
+6. Run the start script again. It will start Paper and generate plugin configuration. For Minecraft 26.1 and later, use Java 25 or newer; verify the version table at https://docs.papermc.io/paper/getting-started/.
 7. Stop the server with the console command `stop` before editing files or copying world backups.
 
 ## Configure crossplay
