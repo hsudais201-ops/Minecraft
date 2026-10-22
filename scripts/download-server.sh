@@ -1,64 +1,75 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Prepare a Paper Java Edition server. This script does not start it.
-# Usage: ./scripts/download-server.sh <minecraft-version> [target-directory]
+# Download the official Mojang Minecraft Java 1.21.11 server JAR.
+# Usage: ./scripts/download-server.sh [target-directory]
 
-if [[ $# -lt 1 || $# -gt 2 ]]; then
-  echo "Usage: $0 <minecraft-version> [target-directory]" >&2
-  echo "Example: $0 1.21.11" >&2
+if [[ $# -gt 1 ]]; then
+  echo "Usage: $0 [target-directory]" >&2
   exit 2
 fi
 
-MC_VERSION="$1"
-if [[ ! "$MC_VERSION" =~ ^[0-9]+(\.[0-9]+){1,2}$ ]]; then
-  echo "Minecraft version must look like 1.21.11." >&2
-  exit 2
-fi
-
+MC_VERSION="1.21.11"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TARGET_DIR="${2:-$ROOT_DIR/server-runtime}"
-USER_AGENT="minecraft-java-server/1.0 (https://github.com/hsudais201-ops/Minecraft)"
+TARGET_DIR="${1:-$ROOT_DIR/server-runtime}"
+USER_AGENT="minecraft-java-vanilla-server/1.0 (https://github.com/hsudais201-ops/Minecraft)"
 
-for tool in curl jq sha256sum; do
+for tool in curl jq sha1sum; do
   if ! command -v "$tool" >/dev/null 2>&1; then
     echo "Missing required tool: $tool" >&2
-    echo "Install curl, jq, and sha256sum using your Linux distribution's package manager." >&2
+    echo "Install curl, jq, and sha1sum using your Linux distribution's package manager." >&2
     exit 1
   fi
 done
 
 mkdir -p "$TARGET_DIR"
 
-echo "Looking for a stable Paper Java Edition build for Minecraft $MC_VERSION..."
-PAPER_BUILDS="$(curl --fail --location --silent --show-error \
-  -H "User-Agent: $USER_AGENT" \
-  "https://fill.papermc.io/v3/projects/paper/versions/$MC_VERSION/builds")"
+MANIFEST_URL="https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"
+MANIFEST="$(curl --fail --location --silent --show-error \
+  --retry 2 --retry-delay 2 \
+  -H "User-Agent: $USER_AGENT" "$MANIFEST_URL")"
 
-PAPER_URL="$(printf '%s' "$PAPER_BUILDS" | jq -r 'first(.[] | select(.channel == "STABLE") | .downloads["server:default"].url) // empty')"
-PAPER_SHA="$(printf '%s' "$PAPER_BUILDS" | jq -r 'first(.[] | select(.channel == "STABLE") | .downloads["server:default"].checksums.sha256) // empty')"
+META_URL="$(printf '%s' "$MANIFEST" | jq -r --arg version "$MC_VERSION" '.versions[] | select(.id == $version) | .url' | head -n 1)"
+META_SHA1="$(printf '%s' "$MANIFEST" | jq -r --arg version "$MC_VERSION" '.versions[] | select(.id == $version) | .sha1' | head -n 1)"
 
-if [[ -z "$PAPER_URL" || -z "$PAPER_SHA" ]]; then
-  echo "No stable Paper build/checksum found for Minecraft $MC_VERSION." >&2
-  echo "Check https://papermc.io/downloads/paper and choose a supported stable version." >&2
+if [[ -z "$META_URL" || -z "$META_SHA1" || "$META_URL" == "null" || "$META_SHA1" == "null" ]]; then
+  echo "Minecraft Java $MC_VERSION was not found in Mojang's version manifest." >&2
   exit 1
 fi
 
-TEMP_FILE="$(mktemp "$TARGET_DIR/paper.jar.tmp.XXXXXX")"
-cleanup() { rm -f "$TEMP_FILE"; }
+META_FILE="$(mktemp "$TARGET_DIR/version-meta.json.tmp.XXXXXX")"
+SERVER_FILE="$(mktemp "$TARGET_DIR/server.jar.tmp.XXXXXX")"
+cleanup() { rm -f "$META_FILE" "$SERVER_FILE"; }
 trap cleanup EXIT
 
 curl --fail --location --silent --show-error \
   --retry 2 --retry-delay 2 \
-  -H "User-Agent: $USER_AGENT" \
-  --output "$TEMP_FILE" "$PAPER_URL"
+  -H "User-Agent: $USER_AGENT" --output "$META_FILE" "$META_URL"
 
-if ! printf '%s  %s\n' "$PAPER_SHA" "$TEMP_FILE" | sha256sum --check --status; then
-  echo "Paper SHA-256 verification failed; downloaded file discarded." >&2
+if ! printf '%s  %s\n' "$META_SHA1" "$META_FILE" | sha1sum --check --status; then
+  echo "Mojang version metadata SHA-1 verification failed." >&2
   exit 1
 fi
 
-mv -f "$TEMP_FILE" "$TARGET_DIR/paper.jar"
+SERVER_URL="$(jq -r '.downloads.server.url // empty' "$META_FILE")"
+SERVER_SHA1="$(jq -r '.downloads.server.sha1 // empty' "$META_FILE")"
+if [[ -z "$SERVER_URL" || -z "$SERVER_SHA1" ]]; then
+  echo "Mojang metadata does not provide the official server download and checksum." >&2
+  exit 1
+fi
+
+echo "Downloading official Minecraft Java $MC_VERSION server..."
+curl --fail --location --silent --show-error \
+  --retry 2 --retry-delay 2 \
+  -H "User-Agent: $USER_AGENT" --output "$SERVER_FILE" "$SERVER_URL"
+
+if ! printf '%s  %s\n' "$SERVER_SHA1" "$SERVER_FILE" | sha1sum --check --status; then
+  echo "Official Minecraft server JAR SHA-1 verification failed; download discarded." >&2
+  exit 1
+fi
+
+mv -f "$SERVER_FILE" "$TARGET_DIR/server.jar"
+rm -f "$META_FILE"
 trap - EXIT
 
 if [[ ! -e "$TARGET_DIR/server.properties" ]]; then
@@ -77,10 +88,10 @@ fi
 
 cat <<EOF
 
-Prepared Java Edition server files in: $TARGET_DIR
-Minecraft version: $MC_VERSION
-Server software: Paper (Java Edition only)
-Checksum: verified
+Prepared official Minecraft Java $MC_VERSION server files in: $TARGET_DIR
+Edition: Java only
+Server software: Official Mojang vanilla server
+Checksum: verified against Mojang's version manifest
 
 This script does NOT start the server or accept the Minecraft EULA.
 Read https://www.minecraft.net/en-us/eula, and change eula=false to
