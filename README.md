@@ -6,6 +6,12 @@ A GitHub-only project scaffold for a vanilla-style Minecraft Java + Bedrock surv
 
 GitHub stores the project files and can validate them with GitHub Actions. GitHub Actions runners are temporary jobs, not persistent game servers. This repository alone will **not** provide a continuously running server, a public server IP, or a world that stays online between jobs. Do not use Actions to keep a game server running or to bypass runner limits.
 
+## Why GitHub-only 24/7 crossplay is not possible
+
+See [the verified GitHub-only hosting limits](docs/24-7-free-hosting-reality.md). Actions jobs stop after their time limit, Codespaces have a monthly compute quota and 12-hour maximum lifetime, Codespaces port forwarding is TCP-only, and Pages is static hosting. A standard Bedrock server needs UDP networking, so these GitHub features do not provide a persistent public Java + Bedrock server.
+
+The supported GitHub-only deliverable is the tested runtime bundle and project validation—not a live public world.
+
 ## Planned server stack (when a real host is available)
 
 - **Paper** for a Java Edition server.
