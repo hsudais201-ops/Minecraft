@@ -11,6 +11,7 @@ on:
   push:
     paths:
       - ".github/workflows/prepare-runtime.yml"
+      - "scripts/download-server.sh"
 
 permissions:
   contents: read
