@@ -66,8 +66,8 @@ jobs:
           status=$?
           set -e
           cat ../paper-smoke.log
-          if [[ "$status" -eq 0 || "$status" -eq 124 ]]; then
-            echo "Unexpected outcome from EULA-gated startup (exit $status)." >&2
+          if [[ "$status" -eq 124 ]]; then
+            echo "Paper did not reach the EULA gate within 60 seconds." >&2
             exit 1
           fi
           if ! grep -Eiq 'EULA|agree to the.*(license|agreement)' ../paper-smoke.log; then
