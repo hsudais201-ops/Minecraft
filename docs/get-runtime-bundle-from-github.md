@@ -23,7 +23,7 @@ This workflow downloads official Paper, Geyser-Spigot, and Floodgate-Spigot file
 3. Ensure the starter `server.properties` is appropriate. The project template has the whitelist enabled.
 4. Read the Minecraft EULA:
    https://www.minecraft.net/en-us/eula
-5. The first local launch script writes `eula=false` and exits. Only if you agree with the EULA, edit that file to `eula=true`.
+5. The bundle already includes `eula.txt` set to `eula=false`. Read the Minecraft EULA; only if you agree, edit that file to `eula=true`. Never accept it automatically.
 6. Start Paper from its directory using a command such as:
 
    ```bash
