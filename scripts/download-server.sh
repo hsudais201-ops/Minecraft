@@ -6,7 +6,7 @@ set -euo pipefail
 
 if [[ $# -lt 1 || $# -gt 2 ]]; then
   echo "Usage: $0 <minecraft-version> [target-directory]" >&2
-  echo "Example: $0 1.21.11" >&2
+  echo "Example: $0 26.3" >&2
   exit 2
 fi
 
