@@ -1,0 +1,20 @@
+{
+  "name": "Minecraft Java 1.21.11 Server (Codespaces)",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "21",
+      "installMaven": false,
+      "installGradle": false
+    }
+  },
+  "forwardPorts": [25565],
+  "portsAttributes": {
+    "25565": {
+      "label": "Minecraft Java 1.21.11 (TCP 25565)",
+      "visibility": "public",
+      "onAutoForward": "notify"
+    }
+  },
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y jq curl && bash scripts/download-server.sh"
+}
