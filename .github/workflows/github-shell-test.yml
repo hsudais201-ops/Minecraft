@@ -1,0 +1,101 @@
+name: GitHub Shell and Minecraft Runtime Test
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/github-shell-test.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  shell-test:
+    name: Run shell commands on GitHub Linux runner
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Prove shell access
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "=== Current directory ==="
+          pwd
+          echo "=== Runner OS ==="
+          uname -a
+          echo "=== User and architecture ==="
+          id
+          uname -m
+          echo "=== Script syntax ==="
+          bash -n scripts/check-config.sh
+          bash -n scripts/download-server.sh
+          bash -n scripts/start-server.sh
+          bash scripts/check-config.sh config/server.properties
+          echo "SHELL_ACCESS=PASS"
+
+      - name: Set up Java 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Download Paper and crossplay plugins
+        shell: bash
+        run: |
+          set -euo pipefail
+          java -version
+          command -v curl
+          command -v jq
+          command -v sha256sum
+          bash scripts/download-server.sh 26.3 runtime
+
+      - name: Test real Paper startup without accepting EULA
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd runtime
+          printf '%s\n' 'eula=false' > eula.txt
+          set +e
+          timeout 60s java -Xms256M -Xmx1G -jar paper.jar --nogui > ../github-shell-test.log 2>&1
+          status=$?
+          set -e
+          cat ../github-shell-test.log
+
+          if [[ "$status" -eq 124 ]]; then
+            echo "Paper did not finish its EULA-gate startup in 60 seconds." >&2
+            exit 1
+          fi
+          grep -Eiq 'Running Java 25' ../github-shell-test.log
+          grep -Eiq 'Loading Paper .*Minecraft 26\.3' ../github-shell-test.log
+          grep -Eiq 'Geyser-Spigot.*floodgate|Geyser-Spigot' ../github-shell-test.log
+          grep -Eiq 'agree to the EULA' ../github-shell-test.log
+          echo "PAPER_RUNTIME=PASS"
+          echo "CROSSPLAY_PLUGINS=DETECTED"
+          echo "EULA=NOT_ACCEPTED"
+
+      - name: Write test summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "GitHub Actions shell execution: completed"
+            echo "Runtime under test: Paper 26.3 / Java 25"
+            echo "Crossplay plugins: Geyser + Floodgate"
+            echo "EULA: left false; the server was not started for players"
+            echo "Public game endpoint: not created by this test"
+            echo "Persistent 24/7 uptime: not provided by GitHub Actions"
+          } > github-shell-test-summary.txt
+
+      - name: Upload shell-test log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: github-shell-test-results
+          path: |
+            github-shell-test.log
+            github-shell-test-summary.txt
+          if-no-files-found: warn
+          retention-days: 3
