@@ -11,6 +11,11 @@ if [[ $# -lt 1 || $# -gt 2 ]]; then
 fi
 
 MC_VERSION="$1"
+if [[ ! "$MC_VERSION" =~ ^[0-9]+(\\.[0-9]+){1,2}$ ]]; then
+  echo "Minecraft version must look like 1.21.11 or 26.1 (stable release only)." >&2
+  exit 2
+fi
+
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TARGET_DIR="${2:-$ROOT_DIR/server-runtime}"
 PLUGIN_DIR="$TARGET_DIR/plugins"
