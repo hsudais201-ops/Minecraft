@@ -1,0 +1,28 @@
+name: Validate server project
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate configuration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate server configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f config/server.properties
+          grep -qx 'gamemode=survival' config/server.properties
+          grep -qx 'online-mode=true' config/server.properties
+          grep -qx 'white-list=true' config/server.properties
+          grep -qx 'enforce-whitelist=true' config/server.properties
+          echo "Server configuration checks passed."
