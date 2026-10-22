@@ -1,0 +1,70 @@
+name: Prepare Minecraft crossplay runtime
+
+on:
+  workflow_dispatch:
+    inputs:
+      minecraft-version:
+        description: "Paper Minecraft server version (default: 26.3 for current Geyser clients)"
+        required: true
+        default: "26.3"
+        type: string
+  push:
+    paths:
+      - ".github/workflows/prepare-runtime.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    name: Download and verify server software
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Check downloader syntax
+        run: bash -n scripts/download-server.sh
+
+      - name: Install jq if missing
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v jq >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y jq
+          fi
+          command -v curl
+          command -v sha256sum
+          jq --version
+
+      - name: Download Paper, Geyser, and Floodgate
+        shell: bash
+        env:
+          MC_VERSION: ${{ inputs.minecraft-version || '26.3' }}
+        run: |
+          set -euo pipefail
+          echo "Preparing a temporary runtime bundle for Minecraft $MC_VERSION"
+          bash scripts/download-server.sh "$MC_VERSION" bundle
+
+      - name: Write checksum manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s bundle/paper.jar
+          test -s bundle/plugins/Geyser-Spigot.jar
+          test -s bundle/plugins/floodgate-spigot.jar
+          (
+            cd bundle
+            sha256sum paper.jar plugins/Geyser-Spigot.jar plugins/floodgate-spigot.jar > SHA256SUMS
+          )
+          cat bundle/SHA256SUMS
+
+      - name: Upload temporary runtime bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: minecraft-crossplay-runtime-${{ inputs.minecraft-version || '26.3' }}
+          path: bundle/
+          if-no-files-found: error
+          retention-days: 3
