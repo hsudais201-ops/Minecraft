@@ -19,6 +19,17 @@ GitHub can store the project and run temporary download/test jobs. It does not p
 
 Open [Actions](https://github.com/hsudais201-ops/Minecraft/actions) and select **GitHub Shell and Minecraft Runtime Test**. Success means the official server JAR ran until the EULA check. It does not mean there is a live public server.
 
+## Experimental GitHub Codespaces trial
+
+This repository includes `.devcontainer/devcontainer.json` for a **temporary Codespaces experiment**. It selects Java 21, installs the download dependencies, downloads the verified official server JAR while leaving `eula=false`, and asks Codespaces to forward port TCP 25565 publicly.
+
+1. Open this repository on GitHub, tap **Code → Codespaces → Create codespace on main**. Check your Codespaces billing/quota first; do not enable paid overages.
+2. When the Codespace finishes building, read the [Minecraft EULA](https://www.minecraft.net/en-us/eula). **Only if you agree**, change `server-runtime/eula.txt` from `eula=false` to `eula=true`.
+3. In the Codespaces terminal, run `bash scripts/start-server.sh`.
+4. Open the **Ports** panel and confirm port `25565` is forwarded and marked **Public**.
+
+**Important:** this is only a test path, not a verified public Minecraft address. Codespaces exposes forwarded services through a generated `app.github.dev` URL and does not guarantee that a normal Minecraft Java client can use that URL as a raw TCP game endpoint. If the client cannot connect, a separate TCP tunneling service or a host that directly exposes TCP 25565 would be required. A Codespace also stops at its maximum lifetime, so it cannot provide a guaranteed 24/7 server.
+
 ## Prepare server software on a host
 
 On a Linux host you control, run:
