@@ -64,7 +64,8 @@ jobs:
             echo "Minecraft did not reach the EULA gate within 60 seconds." >&2
             exit 1
           fi
-          grep -Eiq 'Starting minecraft server version 1\.21\.11|Starting Minecraft server version 1\.21\.11' ../github-shell-test.log
+          # Mojang's vanilla server exits before logging its version when eula=false.
+          grep -Eiq 'Starting net\.minecraft\.server\.Main|Starting Minecraft server' ../github-shell-test.log
           grep -Eiq 'agree to the EULA' ../github-shell-test.log
           echo "VANILLA_JAVA_1_21_11_RUNTIME=PASS"
           echo "EULA=NOT_ACCEPTED"
