@@ -1,45 +1,36 @@
-# Prepare a temporary runtime bundle using GitHub Actions
+# Prepare a Minecraft Java 1.21.11 runtime bundle with GitHub Actions
 
-This workflow downloads official Paper, Geyser-Spigot, and Floodgate-Spigot files on a GitHub-hosted runner, verifies SHA-256 checksums when provided by the download APIs, and makes a temporary artifact that you can download.
+This workflow downloads the official stable Paper build for the requested Minecraft Java version, verifies its SHA-256 checksum, performs a short startup test, and makes a temporary artifact.
 
-**It does not run a live multiplayer server.** GitHub Actions is temporary automation; the artifact expires after 3 days. It is useful for moving the software to a computer you control, not for 24/7 hosting.
+**It does not host a live server.** The artifact expires after 3 days and is intended to transfer software to a separate host.
 
 ## Run it from a phone
 
-1. Open the repository's **Actions** tab:
-   https://github.com/hsudais201-ops/Minecraft/actions
-2. Select **Prepare Minecraft crossplay runtime**.
+1. Open the repository's [Actions tab](https://github.com/hsudais201-ops/Minecraft/actions).
+2. Select **Prepare Minecraft Java 1.21.11 Runtime**.
 3. Tap **Run workflow**.
-4. Keep the default Minecraft version `26.3` for the latest Geyser-supported Java protocol, or use another version only if you understand the compatibility implications.
-5. Wait for the workflow to finish successfully.
-6. Open the completed run, scroll to **Artifacts**, and download `minecraft-crossplay-runtime-26.3` (or the version you selected). The artifact expires after 3 days.
-7. Extract it on the computer that will host the game server. Keep the included `SHA256SUMS` manifest with the files.
+4. Keep the default version `1.21.11`.
+5. Wait for the workflow to finish.
+6. Open the completed run and download the artifact named `minecraft-java-runtime-1.21.11`.
 
-## Start on your own Linux host
+## Start on a host you control
 
-1. Install the Java version Paper requires for the chosen Minecraft version. Paper's current guidance lists Java 25 for Minecraft 26.1 and later:
-   https://docs.papermc.io/paper/getting-started/
-2. Extract the artifact into a private server directory.
-3. Ensure the starter `server.properties` is appropriate. The project template has the whitelist enabled.
-4. Read the Minecraft EULA:
-   https://www.minecraft.net/en-us/eula
-5. The bundle already includes `eula.txt` set to `eula=false`. Read the Minecraft EULA; only if you agree, edit that file to `eula=true`. Never accept it automatically.
-6. Start Paper from its directory using a command such as:
+Paper lists Java 21 for Minecraft 1.20 through 1.21.11. Confirm requirements at https://docs.papermc.io/paper/getting-started/.
+
+1. Extract the downloaded files into a private server directory.
+2. Read the Minecraft EULA: https://www.minecraft.net/en-us/eula
+3. The artifact includes `eula.txt` containing `eula=false`. Only if you agree with the EULA, change it to `eula=true`.
+4. Start Paper from the extracted directory:
 
    ```bash
    java -Xms1G -Xmx2G -jar paper.jar --nogui
    ```
 
-7. After the server has generated plugin configuration, configure Geyser's auth type for Floodgate as described in the official documentation:
-   - https://geysermc.org/wiki/geyser/setup/
-   - https://geysermc.org/wiki/floodgate/
-8. Confirm the Bedrock UDP port in Geyser's configuration (commonly 19132) and Java TCP port (commonly 25565). Open only the necessary ports on your host/network.
-9. Test from both editions. Do not advertise a public server address until a separate host is reachable from another network.
+5. Keep `online-mode=true` and the whitelist enabled. The default Java server port is TCP 25565.
 
 ## Limits
 
-- A GitHub Actions artifact is temporary storage, not a persistent game host.
-- A job can fail if the requested Paper version has no stable build.
-- Plugin builds may change. Compatibility should be tested before inviting players.
-- Continuous uptime requires a separate host that remains powered on and connected.
-- Do not add billing details or paid resources to use this workflow.
+- An artifact is not a running server or public game IP.
+- The workflow does not accept the EULA.
+- A live server needs a separate host that remains running and can expose TCP 25565.
+- Don't add paid resources or billing details to run this workflow.
