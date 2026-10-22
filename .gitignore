@@ -1,0 +1,20 @@
+# Never commit a live world or generated server files
+world/
+world_nether/
+world_the_end/
+logs/
+crash-reports/
+plugins/
+server.jar
+paper.jar
+*.log
+*.pid
+eula.txt
+
+# Local secrets and SSH material
+.env
+.env.*
+*.pem
+*.key
+id_rsa
+id_ed25519
