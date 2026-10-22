@@ -6,13 +6,14 @@ on:
     paths:
       - ".github/workflows/github-shell-test.yml"
       - "scripts/download-server.sh"
+      - "scripts/start-server.sh"
 
 permissions:
   contents: read
 
 jobs:
   shell-test:
-    name: Test Paper 1.21.11 under Java 21
+    name: Test vanilla Minecraft Java 1.21.11 under Java 21
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -23,9 +24,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          echo "=== Runner OS ==="
           uname -a
-          echo "=== User and architecture ==="
           id
           uname -m
           bash -n scripts/check-config.sh
@@ -40,35 +39,34 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      - name: Download and verify Paper 1.21.11
+      - name: Download and verify official Mojang server JAR
         shell: bash
         run: |
           set -euo pipefail
           java -version
           command -v curl
           command -v jq
-          command -v sha256sum
-          bash scripts/download-server.sh 1.21.11 runtime
+          command -v sha1sum
+          bash scripts/download-server.sh runtime
 
-      - name: Test Paper startup without accepting the EULA
+      - name: Test vanilla server startup without accepting the EULA
         shell: bash
         run: |
           set -euo pipefail
           cd runtime
           set +e
-          timeout 60s java -Xms256M -Xmx1G -jar paper.jar --nogui > ../github-shell-test.log 2>&1
+          timeout 60s java -Xms256M -Xmx1G -jar server.jar --nogui > ../github-shell-test.log 2>&1
           status=$?
           set -e
           cat ../github-shell-test.log
 
           if [[ "$status" -eq 124 ]]; then
-            echo "Paper did not reach the EULA gate within 60 seconds." >&2
+            echo "Minecraft did not reach the EULA gate within 60 seconds." >&2
             exit 1
           fi
-          grep -Eiq 'Running Java 21' ../github-shell-test.log
-          grep -Eiq 'Loading Paper .*Minecraft 1\.21\.11' ../github-shell-test.log
+          grep -Eiq 'Starting minecraft server version 1\.21\.11|Starting Minecraft server version 1\.21\.11' ../github-shell-test.log
           grep -Eiq 'agree to the EULA' ../github-shell-test.log
-          echo "PAPER_1_21_11_RUNTIME=PASS"
+          echo "VANILLA_JAVA_1_21_11_RUNTIME=PASS"
           echo "EULA=NOT_ACCEPTED"
 
       - name: Write test summary
@@ -76,7 +74,7 @@ jobs:
         shell: bash
         run: |
           {
-            echo "Runtime tested: Paper 1.21.11 / Java 21"
+            echo "Runtime tested: official vanilla Minecraft Java 1.21.11 / Java 21"
             echo "Edition: Java only"
             echo "EULA: not accepted automatically"
             echo "Public game endpoint: not created by this test"
@@ -87,7 +85,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: minecraft-java-1.21.11-test-results
+          name: vanilla-java-1.21.11-test-results
           path: |
             github-shell-test.log
             github-shell-test-summary.txt
