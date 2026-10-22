@@ -36,6 +36,10 @@ Paper is close to vanilla but is not identical to the official vanilla server. I
 8. For typical default ports, allow Java on TCP 25565 and Bedrock on UDP 19132 in the host firewall and network firewall.
 9. Keep the whitelist enabled until you have added trusted players.
 
+## Prepare a downloadable runtime bundle
+
+Use the **Prepare Minecraft crossplay runtime** workflow to download checksum-verified Paper, Geyser, and Floodgate files as a temporary artifact. See [phone-friendly instructions](docs/get-runtime-bundle-from-github.md). This bundle is software only; it does not host a live server.
+
 ## Security and backups
 
 - Keep Java `online-mode=true`.
