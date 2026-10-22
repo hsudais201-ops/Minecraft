@@ -1,63 +1,49 @@
-# Minecraft Crossplay Survival
+# Minecraft Java Survival Server
 
-A GitHub-only project scaffold for a vanilla-style Minecraft Java + Bedrock survival server.
+A GitHub-managed project for a **Java Edition only** survival server, targeting **Minecraft Java 1.21.11**.
 
-## Honest hosting limitation
+## Important hosting limitation
 
-GitHub stores the project files and can validate them with GitHub Actions. GitHub Actions runners are temporary jobs, not persistent game servers. This repository alone will **not** provide a continuously running server, a public server IP, or a world that stays online between jobs. Do not use Actions to keep a game server running or to bypass runner limits.
+GitHub can store the project and run temporary build/test jobs. It does not provide a permanent Minecraft server process, persistent always-on compute, or a supported public raw-TCP game-server address from this repository alone. The test workflows below verify the server software, but they do not leave a live server running.
 
-## Why GitHub-only 24/7 crossplay is not possible
+The intended stack is **Paper 1.21.11 + Java 21**. Paper is a performance-oriented server and may differ slightly from the official vanilla server. If you require strictly vanilla behavior, use the official Minecraft Java server software on a separate host.
 
-See [the verified GitHub-only hosting limits](docs/24-7-free-hosting-reality.md). Actions jobs stop after their time limit, Codespaces have a monthly compute quota and 12-hour maximum lifetime, Codespaces port forwarding is TCP-only, and Pages is static hosting. A standard Bedrock server needs UDP networking, so these GitHub features do not provide a persistent public Java + Bedrock server.
+## Files
 
-The supported GitHub-only deliverable is the tested runtime bundle and project validation—not a live public world.
+- `config/server.properties` — safe starter settings with whitelist enabled.
+- `scripts/download-server.sh` — downloads a stable Paper build and verifies its SHA-256 checksum.
+- `scripts/start-server.sh` — starts Paper only after you manually accept the EULA.
+- `.github/workflows/validate.yml` — checks configuration and shell syntax.
+- `.github/workflows/github-shell-test.yml` — verifies that GitHub Actions can download and execute Paper 1.21.11 under Java 21 up to its EULA gate.
+- `.github/workflows/prepare-runtime.yml` — uploads a temporary software bundle; it expires after 3 days.
 
-## Planned server stack (when a real host is available)
+## Run the GitHub test
 
-- **Paper** for a Java Edition server.
-- **Geyser** to let Bedrock clients connect to the Java server.
-- **Floodgate** for Bedrock-player authentication without requiring each Bedrock player to own Java Edition.
-- GitHub for source files, configuration templates, and automated checks.
+Open [Actions](https://github.com/hsudais201-ops/Minecraft/actions) and run **GitHub Shell and Minecraft Runtime Test**. A successful run means the version's server software passed a temporary startup smoke test—not that a public server is online.
 
-Paper is close to vanilla but is not identical to the official vanilla server. If strict vanilla mechanics are essential, use the official server and a separately hosted compatible Geyser setup.
+## Prepare server software on a separate Java-capable host
 
-## Repository contents
+From a Linux computer you control, run:
 
-- `config/server.properties` — safe starting configuration.
-- `.github/workflows/validate.yml` — checks project files only; it does not launch Minecraft.
-- `scripts/check-config.sh` — local configuration validation.
+```bash
+bash scripts/download-server.sh 1.21.11
+bash scripts/start-server.sh
+```
 
-## Setup on a phone
+On its first run, the start script creates `eula.txt` with `eula=false` and exits. Read the [Minecraft EULA](https://www.minecraft.net/en-us/eula) and only change it to `eula=true` if you agree. Run the start script again after accepting it.
 
-1. Open this repository in GitHub's mobile app or browser.
-2. Review the files and workflow under the **Code** tab.
-3. Open **Actions** and inspect the **Validate server project** run after a commit.
-4. When you later have a permitted Minecraft host, install a supported Java runtime and a server version compatible with your intended client versions.
-5. Download server software only from official sources:
-   - Paper: https://papermc.io/downloads/paper
-   - Geyser: https://geysermc.org/download
-   - Floodgate: https://geysermc.org/download
-6. Start the server manually on that host, review the Minecraft EULA, and accept it only if you agree.
-7. Install compatible Geyser and Floodgate plugins and configure the Bedrock listener.
-8. For typical default ports, allow Java on TCP 25565 and Bedrock on UDP 19132 in the host firewall and network firewall.
-9. Keep the whitelist enabled until you have added trusted players.
+Paper's guidance lists **Java 21** for Minecraft 1.20 through 1.21.11: https://docs.papermc.io/paper/getting-started/
 
-## Free hosting from a phone browser
+## Server settings and safety
 
-If you do not have Linux or a virtual phone, see [phone-browser hosting instructions](docs/free-browser-hosting-from-phone.md). This uses a separate free host for the live server; GitHub remains the project repository. Free hosting sleeps/stops while idle and does not promise unlimited always-awake uptime.
+- Java edition only; no Geyser or Floodgate is installed.
+- Keep `online-mode=true`, `white-list=true`, and `enforce-whitelist=true`.
+- Default Java port is TCP 25565.
+- Do not commit server world data, server JARs, tokens, passwords, SSH keys, or private server data.
+- Back up the world regularly and stop the server safely before making manual copies.
 
-## Prepare a downloadable runtime bundle
+## Free hosting reality
 
-Use the **Prepare Minecraft crossplay runtime** workflow to download checksum-verified Paper, Geyser, and Floodgate files as a temporary artifact. See [phone-friendly instructions](docs/get-runtime-bundle-from-github.md). This bundle is software only; it does not host a live server.
+For 24/7 multiplayer, a game server needs a host that remains running and exposes a reachable TCP 25565 endpoint. GitHub Actions runner jobs are temporary and Codespaces have usage and lifetime limits; repository files alone cannot provide that. Do not repeatedly restart jobs or create accounts to evade service limits.
 
-## Security and backups
-
-- Keep Java `online-mode=true`.
-- Keep the whitelist enabled.
-- Never commit access tokens, passwords, private SSH keys, or server credentials.
-- Back up the world while the server is stopped or using a safe backup method.
-- GitHub is not a suitable place to commit live world data, large server JARs, or secrets.
-
-## Cost and uptime
-
-This project does not create paid resources. GitHub Actions usage and limits depend on repository visibility and GitHub's current plan rules. A real multiplayer server requires a separate machine or hosting service; this repository alone cannot provide 24/7 uptime.
+See [the hosting limitations and realistic options](docs/24-7-free-hosting-reality.md).
