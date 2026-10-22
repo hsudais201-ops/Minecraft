@@ -1,4 +1,5 @@
-# Never commit a live world or generated server files
+# Local runtime and generated worlds
+server-runtime/
 world/
 world_nether/
 world_the_end/
